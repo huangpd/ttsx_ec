@@ -48,8 +48,17 @@ $(function(){
 		}
 		else
 		{
+			$.get('/user/register_yz/',{'uname':$('#user_name').val()},function (data) {
+				if (data.valid >= 1){
+				$('#user_name').next().html('你输入的用户名已存在');
+				$('#user_name').next().show();
+				error_name = true;
+				}else {
 			$('#user_name').next().hide();
 			error_name = false;
+				}
+            })
+
 		}
 	}
 
