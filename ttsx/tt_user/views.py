@@ -4,6 +4,7 @@ from django.http import HttpResponse, JsonResponse, response
 from .models import *
 from hashlib import sha1
 import datetime
+from .user_decorator import *
 
 
 # Create your views here.
@@ -58,7 +59,9 @@ def login_handle(request):
         return render(request, 'tt_user/login.html', context)
     else:
         if result[0].upwd == upwd_sha1:
+            # 记住登陆信息
             request.session['uid'] = result[0].id
+            request.session['uname'] = uname1
             response = redirect('/user/user_center/')
             if uname_jz == '1':
                 response.set_cookie('username', uname1, expires=datetime.datetime.now() + datetime.timedelta(days=7))
@@ -70,13 +73,25 @@ def login_handle(request):
             return render(request, 'tt_user/login.html', context)
 
 
+@userlogin
 def user_center(request):
-    return render(request, 'tt_user/user_center.html')
+    user = UserInfo.objects.filter(pk=request.session['uid'])
+    return render(request, 'tt_user/user_center.html', {'user': user[0], 'title': '用户中心'})
 
 
+@userlogin
 def user_order(request):
     return render(request, 'tt_user/user_order.html')
 
 
+@userlogin
 def user_site(request):
-    return render(request, 'tt_user/user_site.html')
+    user = UserInfo.objects.get(pk=request.session['uid'])
+    if request.method == 'POST':
+        obt = request.POST
+        user.uphone = obt.get('uphone')
+        user.uaddr = obt.get('uaddr')
+        user.ushou = obt.get('ushou')
+        user.ucode = obt.get('ucode')
+        user.save()
+    return render(request, 'tt_user/user_site.html', {'user': user, 'title': '收货信息'})
