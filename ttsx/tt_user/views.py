@@ -6,11 +6,10 @@ from hashlib import sha1
 import datetime
 from .user_decorator import *
 
-
 # Create your views here.
 
 def register(request):
-    context = {'title': '注册'}
+    context = {'title': '注册', 'top': '0'}
     return render(request, 'tt_user/register.html', context)
 
 
@@ -40,7 +39,7 @@ def register_yz(request):
 
 
 def login(request):
-    context = {'title': '登录'}
+    context = {'title': '登录', 'top': '0'}
     return render(request, 'tt_user/login.html', context)
 
 
@@ -52,7 +51,7 @@ def login_handle(request):
     s1 = sha1()
     s1.update(upwd1.encode("utf-8"))
     upwd_sha1 = s1.hexdigest()
-    context = {'title': '登录', 'username': uname1, 'userpwd': upwd1}
+    context = {'title': '登录', 'username': uname1, 'userpwd': upwd1, 'top': '0'}
     result = UserInfo.objects.filter(uname=uname1)
     if result == uname1:
         context['pwd_error'] = '1'
@@ -62,7 +61,8 @@ def login_handle(request):
             # 记住登陆信息
             request.session['uid'] = result[0].id
             request.session['uname'] = uname1
-            response = redirect('/user/user_center/')
+            path1 = request.session.get('url_path','/')
+            response = redirect(path1)
             if uname_jz == '1':
                 response.set_cookie('username', uname1, expires=datetime.datetime.now() + datetime.timedelta(days=7))
             else:
@@ -71,6 +71,11 @@ def login_handle(request):
         else:
             context['pwd_error'] = '1'
             return render(request, 'tt_user/login.html', context)
+
+
+def logout(request):
+    request.session.flush()
+    return redirect('/user/login/')
 
 
 @userlogin
